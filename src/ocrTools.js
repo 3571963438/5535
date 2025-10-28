@@ -1,42 +1,39 @@
 #!/usr/bin/env node
 
-/**
- * OCR 工具定义
- */
 export const ocrTools = [
   {
     name: 'ocr_image',
-    description: '从图片中识别文字（支持多种语言，增强识别算法）',
+    description: 'Recognize text from image with multi-language and enhanced algorithm support',
     inputSchema: {
       type: 'object',
       properties: {
         image_path: {
           type: 'string',
-          description: '图片文件路径（支持 jpg, png, bmp, tiff 等格式）'
+          description: 'Image file path (supports jpg, png, bmp, tiff, etc.)'
         },
         language: {
           type: 'string',
-          description: '识别语言代码，默认为 eng（英文）。支持：eng, chi_sim（简体中文）, chi_tra（繁体中文）, jpn（日语）, kor（韩语）等。可用 + 连接多语言，如 eng+chi_sim',
+          description: 'Language code (default: eng). Multiple languages: eng+chi_sim',
           default: 'eng'
         },
         psm: {
           type: 'number',
-          description: '页面分割模式 (0-13)。3=自动(默认), 6=单文本块, 7=单行, 8=单词, 11=稀疏文本',
+          description: 'Page segmentation mode (0-13). 3=auto, 6=block, 7=line, 8=word, 11=sparse',
           default: 3
         },
         oem: {
           type: 'number',
-          description: 'OCR 引擎模式 (0-3)。3=默认(基于LSTM), 2=仅传统引擎, 1=神经网络, 0=仅传统',
+          description: 'OCR engine mode (0-3). 3=default LSTM, 2=legacy, 1=neural, 0=legacy only',
           default: 3
         },
         enhance_quality: {
           type: 'boolean',
-          description: '启用增强识别算法（自动优化参数）',
+          description: 'Enable enhanced recognition algorithm',
           default: false
         },
         output_format: {
           type: 'string',
-          description: '输出格式：text（纯文本）, json（详细信息包含置信度和坐标）',
+          description: 'Output format: text or json (with confidence and coordinates)',
           enum: ['text', 'json'],
           default: 'text'
         }
@@ -46,32 +43,32 @@ export const ocrTools = [
   },
   {
     name: 'ocr_image_base64',
-    description: '从 Base64 编码的图片中识别文字（增强算法）',
+    description: 'Recognize text from Base64 encoded image',
     inputSchema: {
       type: 'object',
       properties: {
         image_base64: {
           type: 'string',
-          description: 'Base64 编码的图片数据（可带 data:image/... 前缀）'
+          description: 'Base64 encoded image data (with or without data:image prefix)'
         },
         language: {
           type: 'string',
-          description: '识别语言代码，默认为 eng',
+          description: 'Language code',
           default: 'eng'
         },
         psm: {
           type: 'number',
-          description: '页面分割模式',
+          description: 'Page segmentation mode',
           default: 3
         },
         oem: {
           type: 'number',
-          description: 'OCR 引擎模式',
+          description: 'OCR engine mode',
           default: 3
         },
         enhance_quality: {
           type: 'boolean',
-          description: '启用增强识别算法',
+          description: 'Enable enhanced algorithm',
           default: false
         },
         output_format: {
@@ -85,51 +82,51 @@ export const ocrTools = [
   },
   {
     name: 'ocr_with_preprocessing',
-    description: '使用高级预处理进行 OCR 识别（提高准确度，使用增强算法）',
+    description: 'OCR with advanced image preprocessing for better accuracy',
     inputSchema: {
       type: 'object',
       properties: {
         image_path: {
           type: 'string',
-          description: '图片文件路径'
+          description: 'Image file path'
         },
         language: {
           type: 'string',
-          description: '识别语言代码',
+          description: 'Language code',
           default: 'eng'
         },
         psm: {
           type: 'number',
-          description: '页面分割模式',
+          description: 'Page segmentation mode',
           default: 3
         },
         oem: {
           type: 'number',
-          description: 'OCR 引擎模式',
+          description: 'OCR engine mode',
           default: 3
         },
         preprocessing: {
           type: 'object',
-          description: '预处理选项',
+          description: 'Preprocessing options',
           properties: {
             enhance_contrast: {
               type: 'boolean',
-              description: '增强对比度',
+              description: 'Enhance contrast',
               default: true
             },
             remove_noise: {
               type: 'boolean',
-              description: '去除噪点',
+              description: 'Remove noise',
               default: true
             },
             deskew: {
               type: 'boolean',
-              description: '纠正倾斜',
+              description: 'Correct skew',
               default: true
             },
             scale: {
               type: 'number',
-              description: '缩放比例（1.0-3.0，建议 2.0）',
+              description: 'Scale factor (1.0-3.0, recommended: 2.0)',
               default: 2.0
             }
           }
@@ -145,7 +142,7 @@ export const ocrTools = [
   },
   {
     name: 'ocr_batch',
-    description: '批量识别多张图片（使用增强算法）',
+    description: 'Batch OCR for multiple images',
     inputSchema: {
       type: 'object',
       properties: {
@@ -154,26 +151,26 @@ export const ocrTools = [
           items: {
             type: 'string'
           },
-          description: '图片路径数组'
+          description: 'Array of image file paths'
         },
         language: {
           type: 'string',
-          description: '识别语言代码',
+          description: 'Language code',
           default: 'eng'
         },
         psm: {
           type: 'number',
-          description: '页面分割模式',
+          description: 'Page segmentation mode',
           default: 3
         },
         oem: {
           type: 'number',
-          description: 'OCR 引擎模式',
+          description: 'OCR engine mode',
           default: 3
         },
         enhance_quality: {
           type: 'boolean',
-          description: '启用增强识别算法',
+          description: 'Enable enhanced algorithm',
           default: false
         },
         output_format: {
@@ -187,33 +184,33 @@ export const ocrTools = [
   },
   {
     name: 'ocr_region',
-    description: '识别图片中指定区域的文字（增强算法）',
+    description: 'Recognize text in specified region of image',
     inputSchema: {
       type: 'object',
       properties: {
         image_path: {
           type: 'string',
-          description: '图片文件路径'
+          description: 'Image file path'
         },
         region: {
           type: 'object',
-          description: '识别区域（像素坐标）',
+          description: 'Recognition region (pixel coordinates)',
           properties: {
             x: {
               type: 'number',
-              description: '左上角 X 坐标'
+              description: 'Top-left X coordinate'
             },
             y: {
               type: 'number',
-              description: '左上角 Y 坐标'
+              description: 'Top-left Y coordinate'
             },
             width: {
               type: 'number',
-              description: '区域宽度'
+              description: 'Region width'
             },
             height: {
               type: 'number',
-              description: '区域高度'
+              description: 'Region height'
             }
           },
           required: ['x', 'y', 'width', 'height']
@@ -224,7 +221,7 @@ export const ocrTools = [
         },
         enhance_quality: {
           type: 'boolean',
-          description: '启用增强识别算法',
+          description: 'Enable enhanced algorithm',
           default: false
         },
         output_format: {
@@ -238,7 +235,7 @@ export const ocrTools = [
   },
   {
     name: 'get_supported_languages',
-    description: '获取所有支持的 OCR 语言列表',
+    description: 'Get list of all supported OCR languages',
     inputSchema: {
       type: 'object',
       properties: {},
