@@ -1,110 +1,73 @@
-# OCR 图片文字识别服务器
+# OCR 图片文字识别工具
 
-图片转文字工具，支持 18 种语言。
+图片转文字工具，基于 Tesseract.js 实现，支持 18 种语言识别。
 
-## 安装
+## 安装依赖
 
 ```bash
 npm install
 ```
 
-## 启动
+## 启动服务
 
 ```bash
 npm start
 ```
 
-## 6 个功能
+## 功能列表
 
-### 1. 识别图片文字
+### 1. 基础图片识别
 
-```json
-{
-  "name": "ocr_image",
-  "arguments": {
-    "image_path": "/path/to/image.jpg",
-    "language": "chi_sim",
-    "enhance_quality": true
-  }
-}
-```
+识别图片中的文字内容。
 
-参数说明：
-- image_path：图片路径
-- language：语言（eng=英语，chi_sim=简体中文）
-- enhance_quality：开启增强识别（准确度更高）
-- output_format：text 或 json
+**参数：**
+- `image_path`: 图片文件路径
+- `language`: 识别语言（默认：eng）
+- `enhance_quality`: 开启增强识别模式
+- `output_format`: 输出格式（text 或 json）
+- `psm`: 页面分割模式（3-11）
 
 ### 2. Base64 图片识别
 
-```json
-{
-  "name": "ocr_image_base64",
-  "arguments": {
-    "image_base64": "data:image/png;base64,iVBORw0KG...",
-    "language": "eng"
-  }
-}
-```
+支持 Base64 编码的图片识别。
 
-### 3. 预处理识别
+**参数：**
+- `image_base64`: Base64 编码的图片数据
+- `language`: 识别语言
 
-适合模糊、低质量图片。
+### 3. 预处理增强识别
 
-```json
-{
-  "name": "ocr_with_preprocessing",
-  "arguments": {
-    "image_path": "/path/to/image.jpg",
-    "preprocessing": {
-      "enhance_contrast": true,
-      "remove_noise": true,
-      "scale": 2.0
-    }
-  }
-}
-```
+针对模糊、低质量图片进行预处理后识别。
+
+**预处理选项：**
+- `enhance_contrast`: 增强对比度
+- `remove_noise`: 去除噪点
+- `scale`: 图片放大倍数
+- `adaptive_threshold`: 自适应阈值
+- `denoise_strength`: 降噪强度
 
 ### 4. 批量识别
 
-```json
-{
-  "name": "ocr_batch",
-  "arguments": {
-    "image_paths": [
-      "/path/to/image1.jpg",
-      "/path/to/image2.jpg"
-    ]
-  }
-}
-```
+同时识别多张图片。
+
+**参数：**
+- `image_paths`: 图片路径数组
+- `language`: 识别语言
+- `parallel`: 是否并行处理
 
 ### 5. 区域识别
 
-只识别图片的一部分。
+只识别图片中指定区域的文字。
 
-```json
-{
-  "name": "ocr_region",
-  "arguments": {
-    "image_path": "/path/to/image.jpg",
-    "region": {
-      "x": 100,
-      "y": 200,
-      "width": 500,
-      "height": 300
-    }
-  }
-}
-```
+**区域参数：**
+- `x`: 起始 X 坐标
+- `y`: 起始 Y 坐标
+- `width`: 区域宽度
+- `height`: 区域高度
 
-### 6. 查看支持的语言
+### 6. 查询支持的语言
 
-```json
-{
-  "name": "get_supported_languages"
-}
-```
+获取所有支持的识别语言列表。
 
 ## 支持的语言
 
@@ -120,50 +83,36 @@ npm start
 | ita | 意大利语 | nld | 荷兰语 |
 | pol | 波兰语 | tur | 土耳其语 |
 
-多语言识别：eng+chi_sim
+**多语言组合：** 使用 `+` 连接，如 `eng+chi_sim`
 
-## PSM 模式
+## PSM 页面分割模式
 
-选择合适的识别模式可以提高准确度。
+| 模式 | 说明 | 适用场景 |
+|-----|------|---------|
+| 3 | 全自动（默认） | 一般图片 |
+| 6 | 单个文本块 | 一段完整文字 |
+| 7 | 单行文本 | 单行文字 |
+| 8 | 单个单词 | 单词识别 |
+| 11 | 稀疏文本 | 文字较少的图片 |
 
-| PSM | 说明 | 适合 |
-|-----|------|------|
-| 3 | 自动（默认） | 一般图片 |
-| 6 | 单个文本块 | 一段文字 |
-| 7 | 单行 | 一行文字 |
-| 8 | 单词 | 一个单词 |
-| 11 | 稀疏文本 | 文字很少 |
+## 提高识别准确度
 
-## 提高准确度的方法
+1. 开启增强模式 `enhance_quality: true`
+2. 使用预处理功能处理低质量图片
+3. 选择正确的语言代码
+4. 根据图片类型选择合适的 PSM 模式
+5. 使用高分辨率、清晰的图片
 
-1. 设置 `enhance_quality: true`
-2. 使用 `ocr_with_preprocessing` 处理低质量图片
-3. 选择正确的语言
-4. 选择合适的 PSM 模式
-5. 使用高清晰度图片
+## 技术栈
 
-## 配置文件
-
-```json
-{
-  "mcpServers": {
-    "ocr": {
-      "command": "node",
-      "args": ["/path/to/ocr-mcp/src/index.js"]
-    }
-  }
-}
-```
-
-## 技术
-
-- Tesseract.js v5.0.0
-- Node.js >= 18.0.0
+- **OCR 引擎**: Tesseract.js v5.0.0
+- **运行环境**: Node.js >= 18.0.0
+- **通信协议**: Stdio
 
 ## 版本
 
-v3.0.0
+当前版本: v3.0.0
 
-## 许可
+## 许可证
 
-MIT
+MIT License
