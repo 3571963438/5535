@@ -19,7 +19,7 @@ export async function handleOCR({ name, arguments: args }) {
     case 'get_supported_languages':
       return await getSupportedLanguages();
     default:
-      throw new Error(`Unknown tool: ${name}`);
+      throw new Error(`未知工具: ${name}`);
   }
 }
 
@@ -50,9 +50,9 @@ function detectImageQuality(data) {
     variance: confidenceVariance,
     wordCount,
     needsImprovement: qualityScore < 85,
-    quality: qualityScore >= 90 ? 'excellent' :
-             qualityScore >= 80 ? 'good' :
-             qualityScore >= 70 ? 'fair' : 'poor'
+    quality: qualityScore >= 90 ? '优秀' :
+             qualityScore >= 80 ? '良好' :
+             qualityScore >= 70 ? '一般' : '较差'
   };
 }
 
@@ -156,13 +156,13 @@ async function ocrImage({
 }) {
   try {
     if (!existsSync(image_path)) {
-      throw new Error(`Image file not found: ${image_path}`);
+      throw new Error(`图片文件不存在: ${image_path}`);
     }
 
     const worker = await createWorker(language, oem, {
       logger: enhance_quality ? (m => {
         if (m.status === 'recognizing text') {
-          console.error(`Progress: ${(m.progress * 100).toFixed(0)}%`);
+          console.error(`识别进度: ${(m.progress * 100).toFixed(0)}%`);
         }
       }) : undefined
     });
@@ -177,10 +177,10 @@ async function ocrImage({
     const { data } = await worker.recognize(image_path);
 
     const quality = detectImageQuality(data);
-    console.error(`Quality: ${quality.quality} (${quality.score.toFixed(1)}/100)`);
+    console.error(`图像质量: ${quality.quality} (${quality.score.toFixed(1)}/100)`);
 
     if (enhance_quality && quality.needsImprovement) {
-      console.error(`Low quality detected, starting multi-strategy recognition...`);
+      console.error(`检测到低质量，启动多策略识别...`);
 
       const results = [{ data, strategy: 'otsu', psm }];
 
@@ -193,7 +193,7 @@ async function ocrImage({
       results.push({ data: data2, strategy: 'otsu', psm: altPsm });
 
       if (quality.score < 75) {
-        console.error(`Trying adaptive threshold...`);
+        console.error(`尝试自适应阈值策略...`);
         const adaptiveParams = {
           tessedit_pageseg_mode: psm,
           tessedit_ocr_engine_mode: oem,
@@ -205,7 +205,7 @@ async function ocrImage({
       }
 
       if (quality.variance < 15 && quality.score < 80) {
-        console.error(`Trying Sauvola threshold...`);
+        console.error(`尝试 Sauvola 阈值策略...`);
         const sauvolaParams = {
           tessedit_pageseg_mode: psm,
           tessedit_ocr_engine_mode: oem,
@@ -219,8 +219,8 @@ async function ocrImage({
       const merged = mergeResultsWithConfidence(results);
       const finalQuality = detectImageQuality(merged.data);
 
-      console.error(`Multi-strategy complete: ${results.length} strategies`);
-      console.error(`Final confidence: ${merged.data.confidence.toFixed(2)}% (Improvement: ${(merged.data.confidence - data.confidence).toFixed(2)}%)`);
+      console.error(`多策略识别完成: ${results.length} 个策略`);
+      console.error(`最终置信度: ${merged.data.confidence.toFixed(2)}% (提升: ${(merged.data.confidence - data.confidence).toFixed(2)}%)`);
 
       await worker.terminate();
       return formatOutput(merged.data, output_format, language, psm, enhance_quality, {
@@ -234,7 +234,7 @@ async function ocrImage({
     await worker.terminate();
     return formatOutput(data, output_format, language, psm, enhance_quality, { quality });
   } catch (error) {
-    throw new Error(`OCR failed: ${error.message}`);
+    throw new Error(`OCR 识别失败: ${error.message}`);
   }
 }
 
@@ -264,7 +264,7 @@ async function ocrImageBase64({
 
     return formatOutput(data, output_format, language, psm, enhance_quality, { quality });
   } catch (error) {
-    throw new Error(`Base64 OCR failed: ${error.message}`);
+    throw new Error(`Base64 OCR 识别失败: ${error.message}`);
   }
 }
 
@@ -278,13 +278,13 @@ async function ocrWithPreprocessing({
 }) {
   try {
     if (!existsSync(image_path)) {
-      throw new Error(`Image file not found: ${image_path}`);
+      throw new Error(`图片文件不存在: ${image_path}`);
     }
 
     const worker = await createWorker(language, oem, {
       logger: m => {
         if (m.status === 'recognizing text') {
-          console.error(`Progress: ${(m.progress * 100).toFixed(0)}%`);
+          console.error(`识别进度: ${(m.progress * 100).toFixed(0)}%`);
         }
       }
     });
@@ -314,14 +314,14 @@ async function ocrWithPreprocessing({
     await worker.terminate();
 
     const processingInfo = [];
-    if (preprocessing.enhance_contrast) processingInfo.push('Contrast enhancement');
-    if (preprocessing.remove_noise) processingInfo.push('Noise removal');
-    if (preprocessing.deskew) processingInfo.push('Deskew');
+    if (preprocessing.enhance_contrast) processingInfo.push('对比度增强');
+    if (preprocessing.remove_noise) processingInfo.push('降噪处理');
+    if (preprocessing.deskew) processingInfo.push('倾斜纠正');
     if (preprocessing.scale && preprocessing.scale !== 1.0) {
-      processingInfo.push(`Scale ${preprocessing.scale}x`);
+      processingInfo.push(`缩放 ${preprocessing.scale}x`);
     }
-    processingInfo.push('Enhanced algorithm');
-    processingInfo.push(`${thresholdStrategy} threshold`);
+    processingInfo.push('增强识别算法');
+    processingInfo.push(`${thresholdStrategy} 阈值策略`);
 
     if (output_format === 'json') {
       return {
@@ -356,11 +356,11 @@ async function ocrWithPreprocessing({
     return {
       content: [{
         type: 'text',
-        text: `Result (Preprocessed + Enhanced):\n\n${data.text}\n\nConfidence: ${data.confidence.toFixed(2)}%\nQuality: ${quality.quality} (${quality.score.toFixed(1)}/100)\nPreprocessing: ${processingInfo.join(', ')}\nLanguage: ${language}`
+        text: `识别结果 (已预处理 + 增强算法):\n\n${data.text}\n\n置信度: ${data.confidence.toFixed(2)}%\n质量评级: ${quality.quality} (${quality.score.toFixed(1)}/100)\n预处理: ${processingInfo.join(', ')}\n语言: ${language}`
       }]
     };
   } catch (error) {
-    throw new Error(`Preprocessing OCR failed: ${error.message}`);
+    throw new Error(`预处理 OCR 识别失败: ${error.message}`);
   }
 }
 
@@ -387,17 +387,17 @@ async function ocrBatch({
     let totalConfidence = 0;
     let successCount = 0;
     const qualityStats = {
-      excellent: 0,
-      good: 0,
-      fair: 0,
-      poor: 0
+      '优秀': 0,
+      '良好': 0,
+      '一般': 0,
+      '较差': 0
     };
 
     for (const path of image_paths) {
       if (!existsSync(path)) {
         results.push({
           path: path,
-          error: 'File not found',
+          error: '文件不存在',
           text: '',
           confidence: 0
         });
@@ -452,12 +452,12 @@ async function ocrBatch({
 
     const textOutput = results.map((r, i) => {
       if (r.error) {
-        return `Image ${i + 1}: ${r.path}\nError: ${r.error}`;
+        return `图片 ${i + 1}: ${r.path}\n错误: ${r.error}`;
       }
-      return `Image ${i + 1}: ${r.path}\n${r.text}\nConfidence: ${r.confidence.toFixed(2)}%\nQuality: ${r.quality}\nWords: ${r.word_count}`;
+      return `图片 ${i + 1}: ${r.path}\n${r.text}\n置信度: ${r.confidence.toFixed(2)}%\n质量: ${r.quality}\n词数: ${r.word_count}`;
     }).join('\n\n---\n\n');
 
-    const summary = `Batch OCR complete${enhance_quality ? ' (Enhanced)' : ''}\nTotal: ${results.length} | Success: ${successCount} | Failed: ${results.filter(r => r.error).length} | Avg confidence: ${avgConfidence}%\nQuality: Excellent ${qualityStats.excellent}, Good ${qualityStats.good}, Fair ${qualityStats.fair}, Poor ${qualityStats.poor}`;
+    const summary = `批量识别完成${enhance_quality ? ' (增强算法)' : ''}\n总数: ${results.length} | 成功: ${successCount} | 失败: ${results.filter(r => r.error).length} | 平均置信度: ${avgConfidence}%\n质量分布: 优秀 ${qualityStats['优秀']}, 良好 ${qualityStats['良好']}, 一般 ${qualityStats['一般']}, 较差 ${qualityStats['较差']}`;
 
     return {
       content: [{
@@ -466,7 +466,7 @@ async function ocrBatch({
       }]
     };
   } catch (error) {
-    throw new Error(`Batch OCR failed: ${error.message}`);
+    throw new Error(`批量 OCR 识别失败: ${error.message}`);
   }
 }
 
@@ -479,7 +479,7 @@ async function ocrRegion({
 }) {
   try {
     if (!existsSync(image_path)) {
-      throw new Error(`Image file not found: ${image_path}`);
+      throw new Error(`图片文件不存在: ${image_path}`);
     }
 
     const worker = await createWorker(language);
@@ -526,34 +526,34 @@ async function ocrRegion({
     return {
       content: [{
         type: 'text',
-        text: `Region OCR${enhance_quality ? ' (Enhanced)' : ''}:\nRegion: (${region.x}, ${region.y}) ${region.width}x${region.height}\n\n${data.text}\n\nConfidence: ${data.confidence.toFixed(2)}%\nQuality: ${quality.quality} (${quality.score.toFixed(1)}/100)`
+        text: `区域识别结果${enhance_quality ? ' (增强算法)' : ''}:\n区域: (${region.x}, ${region.y}) ${region.width}x${region.height}\n\n${data.text}\n\n置信度: ${data.confidence.toFixed(2)}%\n质量评级: ${quality.quality} (${quality.score.toFixed(1)}/100)`
       }]
     };
   } catch (error) {
-    throw new Error(`Region OCR failed: ${error.message}`);
+    throw new Error(`区域 OCR 识别失败: ${error.message}`);
   }
 }
 
 async function getSupportedLanguages() {
   const languages = [
-    { code: 'eng', name: 'English' },
-    { code: 'chi_sim', name: 'Simplified Chinese' },
-    { code: 'chi_tra', name: 'Traditional Chinese' },
-    { code: 'jpn', name: 'Japanese' },
-    { code: 'kor', name: 'Korean' },
-    { code: 'fra', name: 'French' },
-    { code: 'deu', name: 'German' },
-    { code: 'spa', name: 'Spanish' },
-    { code: 'rus', name: 'Russian' },
-    { code: 'ara', name: 'Arabic' },
-    { code: 'hin', name: 'Hindi' },
-    { code: 'tha', name: 'Thai' },
-    { code: 'vie', name: 'Vietnamese' },
-    { code: 'por', name: 'Portuguese' },
-    { code: 'ita', name: 'Italian' },
-    { code: 'nld', name: 'Dutch' },
-    { code: 'pol', name: 'Polish' },
-    { code: 'tur', name: 'Turkish' }
+    { code: 'eng', name: '英语 (English)' },
+    { code: 'chi_sim', name: '简体中文 (Simplified Chinese)' },
+    { code: 'chi_tra', name: '繁体中文 (Traditional Chinese)' },
+    { code: 'jpn', name: '日语 (Japanese)' },
+    { code: 'kor', name: '韩语 (Korean)' },
+    { code: 'fra', name: '法语 (French)' },
+    { code: 'deu', name: '德语 (German)' },
+    { code: 'spa', name: '西班牙语 (Spanish)' },
+    { code: 'rus', name: '俄语 (Russian)' },
+    { code: 'ara', name: '阿拉伯语 (Arabic)' },
+    { code: 'hin', name: '印地语 (Hindi)' },
+    { code: 'tha', name: '泰语 (Thai)' },
+    { code: 'vie', name: '越南语 (Vietnamese)' },
+    { code: 'por', name: '葡萄牙语 (Portuguese)' },
+    { code: 'ita', name: '意大利语 (Italian)' },
+    { code: 'nld', name: '荷兰语 (Dutch)' },
+    { code: 'pol', name: '波兰语 (Polish)' },
+    { code: 'tur', name: '土耳其语 (Turkish)' }
   ];
 
   const text = languages.map(l => `  ${l.code.padEnd(10)} - ${l.name}`).join('\n');
@@ -561,7 +561,7 @@ async function getSupportedLanguages() {
   return {
     content: [{
       type: 'text',
-      text: `Supported OCR Languages (${languages.length}):\n\n${text}\n\nTip: Use + to combine languages (e.g., eng+chi_sim)\nSet enhance_quality: true for better accuracy`
+      text: `支持的 OCR 语言 (${languages.length} 种):\n\n${text}\n\n提示: 使用 + 连接多个语言 (如 eng+chi_sim)\n设置 enhance_quality: true 获得更高准确度`
     }]
   };
 }
@@ -620,25 +620,25 @@ function formatOutput(data, output_format, language, psm, enhanced = false, extr
     };
   }
 
-  let outputText = `Result${enhanced ? ' (Enhanced)' : ''}:\n\n${data.text}\n\n`;
-  outputText += `Confidence: ${data.confidence.toFixed(2)}%\n`;
-  outputText += `Language: ${language}\n`;
-  outputText += `PSM: ${psm}`;
+  let outputText = `识别结果${enhanced ? ' (增强算法)' : ''}:\n\n${data.text}\n\n`;
+  outputText += `置信度: ${data.confidence.toFixed(2)}%\n`;
+  outputText += `语言: ${language}\n`;
+  outputText += `PSM 模式: ${psm}`;
 
   if (extraInfo.quality) {
-    outputText += `\nQuality: ${extraInfo.quality.quality} (${extraInfo.quality.score.toFixed(1)}/100)`;
+    outputText += `\n质量评级: ${extraInfo.quality.quality} (${extraInfo.quality.score.toFixed(1)}/100)`;
   }
 
   if (extraInfo.multiStrategy) {
-    outputText += `\n\nMulti-strategy:`;
-    outputText += `\n- Strategies: ${extraInfo.strategiesUsed}`;
-    outputText += `\n- Initial: ${extraInfo.initialQuality.avgConfidence.toFixed(2)}%`;
-    outputText += `\n- Final: ${data.confidence.toFixed(2)}%`;
-    outputText += `\n- Improvement: +${(data.confidence - extraInfo.initialQuality.avgConfidence).toFixed(2)}%`;
+    outputText += `\n\n多策略识别:`;
+    outputText += `\n- 使用策略数: ${extraInfo.strategiesUsed}`;
+    outputText += `\n- 初始置信度: ${extraInfo.initialQuality.avgConfidence.toFixed(2)}%`;
+    outputText += `\n- 最终置信度: ${data.confidence.toFixed(2)}%`;
+    outputText += `\n- 提升幅度: +${(data.confidence - extraInfo.initialQuality.avgConfidence).toFixed(2)}%`;
   }
 
   if (data.merged) {
-    outputText += `\nConfidence-weighted merge: ${data.mergeCount} results merged`;
+    outputText += `\n置信度加权合并: 已合并 ${data.mergeCount} 个结果`;
   }
 
   return {
