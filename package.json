@@ -1,7 +1,7 @@
 {
   "name": "ocr-mcp-server",
-  "version": "1.0.0",
-  "description": "MCP server for OCR (Optical Character Recognition) functionality",
+  "version": "3.0.0",
+  "description": "Enhanced MCP server for OCR with multi-threshold adaptive strategies, intelligent quality detection, and confidence-weighted merging",
   "main": "src/index.js",
   "type": "module",
   "scripts": {
@@ -13,7 +13,15 @@
     "ocr",
     "tesseract",
     "image-recognition",
-    "text-extraction"
+    "text-extraction",
+    "preprocessing",
+    "multi-language",
+    "batch-processing",
+    "enhanced-algorithm",
+    "adaptive-thresholding",
+    "quality-detection",
+    "multi-strategy",
+    "confidence-weighting"
   ],
   "author": "",
   "license": "MIT",
